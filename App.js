@@ -5,6 +5,7 @@ import { StyleSheet, Text, View, Image } from 'react-native';
 import MultiTap from './MultiTap'
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 const background_parcel = require('./assets/background_parcel_trans.png');
 
 
@@ -14,9 +15,9 @@ export default class App extends React.Component {
     files: [],
   }
 
-  clicked = (event) => {
+  openDocumentPicker = () => {
     DocumentPicker.getDocumentAsync({
-      type: "image/*",
+      type: "*/*",
       copyToCacheDirectory: true,
       multiple: true
     }).then((e) => {
@@ -32,11 +33,29 @@ export default class App extends React.Component {
             this.setState({
               files: this.state.files,
             })
-        }).catch(error => {
+          }).catch(error => {
           console.error(error);
         })
       }
     })
+  }
+
+  clicked = (event) => {
+
+    MediaLibrary.getPermissionsAsync().then((e) => {
+      if(e.granted && e.status === 'granted') {
+        this.openDocumentPicker();
+      } else {
+        if(e.canAskAgain || e.status === 'undetermined') {
+          MediaLibrary.requestPermissionsAsync().then((e) => {
+            if (e.granted && e.status === 'granted') {
+              this.openDocumentPicker();
+            }
+          })
+        }
+      }
+    })
+
   }
 
   imageSize = (x) => {

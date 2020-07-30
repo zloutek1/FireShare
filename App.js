@@ -1,33 +1,61 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { StyleSheet, Text, View, Button, Image } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 
+import MultiTap from './MultiTap'
 import * as DocumentPicker from 'expo-document-picker';
 const background_parcel = require('./assets/background_parcel_trans.png');
 
 
 export default class App extends React.Component {
 
+  state = {
+    files: [],
+  }
+
   clicked = (event) => {
     console.log("AAA");
     DocumentPicker.getDocumentAsync({
       type: "*/*",
-      copyToCacheDirectory: true,
-      multiple: false
+      copyToCacheDirectory: false,
+      multiple: true
     }).then((e) => {
-      console.log("Result: ", e);
+      if(e.type === 'success' && e.uri) {
+        console.log("File: ", e);
+        this.state.files.push(e);
+        this.setState({
+          files: this.state.files,
+        })
+      }
     })
   }
 
   render() {
+    const {files} = this.state
+
     return (
         <View style={styles.container}>
+          <MultiTap onPress={this.clicked}>
             <Image source={background_parcel} style={styles.backgroundImage} backgroundColor={"#10101F0A"} opacity={0.5} />
             <View style={styles.app}>
-              <Text>Hi Thomas!</Text>
+              <Text>Use two fingers to tap the screen!</Text>
               <StatusBar style="auto"/>
-              <Button onPress={this.clicked} title="Test">File Input</Button>
+              <View>
+                {files.length > 0 && (
+                  <View>
+                    <Text>{"\n"}Uploaded files:</Text>
+                  </View>
+                )}
+                {files.map((item) => {
+                  return (
+                    <View key={`file-`+item.name}>
+                      <Text>{item.name}</Text>
+                    </View>
+                  )
+                })}
+              </View>
             </View>
+          </MultiTap>
         </View>
     );
   }
@@ -53,5 +81,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  imagePreview: {
+    flex: 1,
+    width: '10px'
   }
 });
